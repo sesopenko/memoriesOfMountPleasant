@@ -47,6 +47,22 @@ func main() {
 		w.Write(indexHtml)
 	}
 
+	emptyMemoryHandler := func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		file, err := staticContent.Open("static/empty_memory.png")
+		if err != nil {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		defer file.Close()
+		setImageHeadersForever(w)
+		_, err = io.Copy(w, file)
+		if err != nil {
+			http.Error(w, "not found", http.StatusInternalServerError)
+			return
+		}
+
+	}
+
 	const defaultImagePath = "/mnt/sean-documents/art concept ai/memories_of_mount_pleasant"
 	imagePath := os.Getenv("IMAGE_PATH")
 	if imagePath == "" {
@@ -88,7 +104,7 @@ func main() {
 		}
 		details, exists := db.ImagePathsById[id]
 		if !exists {
-			http.Error(w, "not found", http.StatusNotFound)
+			http.Error(w, "Memory not found", http.StatusNotFound)
 			return
 		}
 		file, err := os.OpenFile(details.FullPath, os.O_RDONLY, 0644)
@@ -98,9 +114,7 @@ func main() {
 			return
 		}
 		defer file.Close()
-		w.Header().Set("Content-Type", "image/png")
-		w.Header().Set("Cache-Control", "public, max-age=31536000") // max-age is set to one year
-		w.Header().Set("Expires", time.Now().AddDate(1, 0, 0).UTC().Format(http.TimeFormat))
+		setImageHeadersForever(w)
 		_, err = io.Copy(w, file)
 		if err != nil {
 			log.Println("Error sending file to client: %s", err)
@@ -113,8 +127,15 @@ func main() {
 	router.GET("/", indexHandler)
 	router.GET("/api/current_memory", currentMemoryHandler)
 	router.GET(memoryPath+"/:uuid", memoryHandler)
+	router.GET("/api/empty_memory", emptyMemoryHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
+}
+
+func setImageHeadersForever(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Cache-Control", "public, max-age=31536000") // max-age is set to one year
+	w.Header().Set("Expires", time.Now().AddDate(1, 0, 0).UTC().Format(http.TimeFormat))
 }
 
 func setNoCacheHeaders(writer http.ResponseWriter) {

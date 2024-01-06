@@ -4,32 +4,115 @@
     <meta charset="UTF-8">
     <title>Memories of Mount Pleasant</title>
     <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px; /* Adjust the height as needed */
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+        .memory_canvas {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #memory {
+            border: 1px solid black;
+        }
+        .center-div {
+            margin-left: auto;
+            margin-right: auto;
+        }
 
+        .image-container {
+            width: 512px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 5px
+        }
+
+        .background-image, .overlay-image {
+
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .overlay-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            z-index: 10;
+        }
+        .overlay-image-display {
+            opacity: 1;
+            transition: opacity 2s ease-in;
+        }
     </style>
     <script type="text/javascript">
+        var currentImageUrl = "/api/empty_memory"
         if (!window.console) console = {log: function() {}};
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("copyright_date").innerHTML((new Date()).getFullYear().toString())
-        });
 
         function changeImage() {
+            var memoryRear = document.getElementById("memory_rear")
+            memoryRear.src = currentImageUrl
+            var memoryFront = document.getElementById("memory_front")
+            memoryFront.classList.remove("overlay-image-display")
+
+            console.log('changing image')
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", "/api/current-image-url", true);
+            xhr.open("GET", "/api/current_memory", true);
             xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var responseData = JSON.parse(xhr.responseText)
+                    if (typeof  responseData === 'object' && responseData.hasOwnProperty('url')) {
+                        url = responseData['url']
+                        memoryFront.src = url
+                        memoryFront.classList.add("overlay-image-display")
+                        currentImageUrl = url
+                    } else {
+                        console.log("Got an invalid object back: ", responseData)
+                    }
 
                 }
+
             }
+            xhr.send();
         }
-        window.setTimeout(changeImage, 5000)
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+            var img = document.getElementById('memory_front')
+            img.addEventListener('load', function() {
+                console.log("New image has finished loading")
+                img.classList.add("overlay-image-display")
+                window.setTimeout(changeImage, 6000)
+            })
+            changeImage()
+        });
+
+
     </script>
 </head>
 <body>
 <header>
-    Memories of Mount Pleasant
+    <h1>Memories of Mount Pleasant</h1>
+    <div><a href="https://en.wikipedia.org/wiki/Mount_Pleasant,_Calgary" target="_blank">Mount Pleasant, Calgary, Canada</a></div>
 </header>
 <main>
-    <div id="photo"></div>
+    <div class="image-container center-div">
+        <img id="memory_rear" class="background-image" src="/api/empty_memory">
+        <img id="memory_front" class="overlay-image" src="/api/empty_memory">
+    </div>
 </main>
 <footer>
     &copy; Sean Esopenko (<span id="copyright_date">2024</span>), All rights reserved.
