@@ -39,11 +39,20 @@
             margin-bottom: 5px
         }
 
+        .explanation {
+            text-align: center;
+            width: 512px;
+            margin-bottom: 5px
+        }
+
         .background-image, .overlay-image {
 
-            width: 100%;
-            height: auto;
+            width: 512px;
+            height: 640px;
             display: block;
+        }
+        .background-image {
+            z-index: 0;
         }
 
         .overlay-image {
@@ -63,12 +72,23 @@
         if (!window.console) console = {log: function() {}};
 
         function changeImage() {
+            console.log('swapping images')
             var memoryRear = document.getElementById("memory_rear")
             memoryRear.src = currentImageUrl
+
+            window.setTimeout(hideFrontImage, 50);
+
+        }
+
+        function hideFrontImage() {
             var memoryFront = document.getElementById("memory_front")
             memoryFront.classList.remove("overlay-image-display")
+            window.setTimeout(requestNextImage, 50)
+        }
 
-            console.log('changing image')
+        function requestNextImage() {
+            var memoryFront = document.getElementById("memory_front")
+            console.log('getting next image')
             var xhr = new XMLHttpRequest();
             xhr.open("GET", "/api/current_memory", true);
             xhr.onreadystatechange = function() {
@@ -76,8 +96,8 @@
                     var responseData = JSON.parse(xhr.responseText)
                     if (typeof  responseData === 'object' && responseData.hasOwnProperty('url')) {
                         url = responseData['url']
+                        console.log('got next image:', url)
                         memoryFront.src = url
-                        memoryFront.classList.add("overlay-image-display")
                         currentImageUrl = url
                     } else {
                         console.log("Got an invalid object back: ", responseData)
@@ -89,13 +109,19 @@
             xhr.send();
         }
 
+        function triggerFadeInImage() {
+            var img = document.getElementById('memory_front')
+            img.classList.add("overlay-image-display")
+            window.setTimeout(changeImage, 6000)
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
 
             var img = document.getElementById('memory_front')
             img.addEventListener('load', function() {
                 console.log("New image has finished loading")
-                img.classList.add("overlay-image-display")
-                window.setTimeout(changeImage, 6000)
+                window.setTimeout(triggerFadeInImage, 50)
+
             })
             changeImage()
         });
@@ -106,12 +132,27 @@
 <body>
 <header>
     <h1>Memories of Mount Pleasant</h1>
-    <div><a href="https://en.wikipedia.org/wiki/Mount_Pleasant,_Calgary" target="_blank">Mount Pleasant, Calgary, Canada</a></div>
 </header>
 <main>
     <div class="image-container center-div">
         <img id="memory_rear" class="background-image" src="/api/empty_memory">
         <img id="memory_front" class="overlay-image" src="/api/empty_memory">
+    </div>
+    <div class="explanation center-div">
+        <p>
+            From 2011 to 2012, I documented the neighborhood of <a href="https://en.wikipedia.org/wiki/Mount_Pleasant,_Calgary" target="_blank">Mount Pleasant, Calgary, Canada</a>
+            using film and digital photography. The body of work was a marker of a point in time for my own life and my artistic practice.
+        </p>
+        <p>
+            The images have been engraved in my memory in a clear yet fuzzy manner and have a special place in my heart.
+        </p>
+        <p>
+            Using a neural network, I built a memory bank of my photographs: machine memory. This machine-memory is re-presenting my memories of the neighborhood to you here.
+        </p>
+
+        <p>
+            Like my own memory and imagination, the machine memory is limitless, accurate, and inaccurate. Please enjoy the spirit of Mount Pleasant as I did in the past.
+        </p>
     </div>
 </main>
 <footer>
