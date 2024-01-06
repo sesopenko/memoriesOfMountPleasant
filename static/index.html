@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Memories of Mount Pleasant</title>
+    <style>
+
+    </style>
+    <script type="text/javascript">
+        if (!window.console) console = {log: function() {}};
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("copyright_date").innerHTML((new Date()).getFullYear().toString())
+        });
+
+        function changeImage() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/api/current-image-url", true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+
+                }
+            }
+        }
+        window.setTimeout(changeImage, 5000)
+    </script>
+</head>
+<body>
+<header>
+    Memories of Mount Pleasant
+</header>
+<main>
+    <div id="photo"></div>
+</main>
+<footer>
+    &copy; Sean Esopenko (<span id="copyright_date">2024</span>), All rights reserved.
+</footer>
+</body>
+</html>
