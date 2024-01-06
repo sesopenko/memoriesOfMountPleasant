@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0NP1HSSDHF"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-0NP1HSSDHF');
+    </script>
+
     <meta charset="UTF-8">
     <title>Memories of Mount Pleasant</title>
     <style>
@@ -68,7 +79,7 @@
         }
     </style>
     <script type="text/javascript">
-        var currentImageUrl = "/api/empty_memory"
+        var currentImageUrl = "{{.MemoryLink}}"
         if (!window.console) console = {log: function() {}};
 
         function changeImage() {
@@ -135,8 +146,8 @@
 </header>
 <main>
     <div class="image-container center-div">
-        <img id="memory_rear" class="background-image" src="/api/empty_memory">
-        <img id="memory_front" class="overlay-image" src="/api/empty_memory">
+        <img id="memory_rear" class="background-image" src="{{.MemoryLink}}" alt="Image of scene in Mount Pleasant, Calgary">
+        <img id="memory_front" class="overlay-image" src="{{.MemoryLink}}" alt="Image of a scene in Mount Pleasant, Calgary">
     </div>
     <div class="explanation center-div">
         <p>
@@ -147,7 +158,7 @@
             The images have been engraved in my memory in a vivid yet distorted manner.
         </p>
         <p>
-            Using a neural network, I built a memory bank of my photographs: machine memory. This machine-memory is
+            Using a neural network, I built a memory bank from my own photographs: machine memory. This machine-memory is
             representing my memories of the neighborhood.
         </p>
 
@@ -157,7 +168,7 @@
     </div>
 </main>
 <footer>
-    &copy; Sean Esopenko (<span id="copyright_date">2024</span>), All rights reserved.
+    &copy; Sean Esopenko (<span id="copyright_date">{{.CurrentYear}}</span>), All rights reserved.
 </footer>
 </body>
 </html>

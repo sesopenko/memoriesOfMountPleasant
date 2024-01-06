@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
+	"html/template"
 	"io"
 	"io/fs"
 	"log"
@@ -35,16 +36,45 @@ type CurrentImagePayload struct {
 	URL string `json:"url"`
 }
 
+type Page struct {
+	MemoryLink  string
+	CurrentYear string
+}
+
 func main() {
 
+	templateData, err := staticContent.ReadFile("static/index.html")
+	if err != nil {
+		log.Fatalf("Unable to read template file for index.html: %s", err)
+	}
+	indexTmpl, err := template.New("index").Parse(string(templateData))
+	if err != nil {
+		log.Fatalf("Unable to parse template file for index.html: %s", err)
+	}
+	const defaultImagePath = "/mnt/sean-documents/art concept ai/memories_of_mount_pleasant"
+	imagePath := os.Getenv("IMAGE_PATH")
+	if imagePath == "" {
+		imagePath = defaultImagePath
+	}
+	db, err := buildImageList(imagePath)
+	if err != nil {
+		log.Fatalf("Unable to build image list: %s", err)
+	}
+	numImages := len(db.ImagePaths)
+	if numImages == 0 {
+		log.Fatalf("Did not find any images in location: %s", imagePath)
+	}
+
 	indexHandler := func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		indexHtml, err := staticContent.ReadFile("static/index.html")
-		if err != nil {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
+		page := Page{
+			MemoryLink:  getMemoryUrl(getCurrentImage(numImages, db)),
+			CurrentYear: fmt.Sprintf("%d", time.Now().Year()),
 		}
 		w.Header().Set("Content-Type", "text/html")
-		w.Write(indexHtml)
+		err := indexTmpl.Execute(w, page)
+		if err != nil {
+			log.Printf("Error rendering template: %s", err)
+		}
 	}
 
 	emptyMemoryHandler := func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -63,25 +93,8 @@ func main() {
 
 	}
 
-	const defaultImagePath = "/mnt/sean-documents/art concept ai/memories_of_mount_pleasant"
-	imagePath := os.Getenv("IMAGE_PATH")
-	if imagePath == "" {
-		imagePath = defaultImagePath
-	}
-	db, err := buildImageList(imagePath)
-	if err != nil {
-		log.Fatalf("Unable to build image list: %s", err)
-	}
-	numImages := len(db.ImagePaths)
-	if numImages == 0 {
-		log.Fatalf("Did not find any images in location: %s", imagePath)
-	}
 	currentMemoryHandler := func(writer http.ResponseWriter, request *http.Request, _ httprouter.Params) {
-		sinceEpoch := time.Now().Unix()
-		const secondsPerImage = 5
-		period := sinceEpoch / secondsPerImage
-		imageIndex := int(period) % numImages
-		currImage := db.ImagePaths[imageIndex]
+		currImage := getCurrentImage(numImages, db)
 		payload := CurrentImagePayload{
 			URL: getMemoryUrl(currImage),
 		}
@@ -130,6 +143,15 @@ func main() {
 	router.GET("/api/empty_memory", emptyMemoryHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
+}
+
+func getCurrentImage(numImages int, db ImageDb) ImageDetails {
+	sinceEpoch := time.Now().Unix()
+	const secondsPerImage = 5
+	period := sinceEpoch / secondsPerImage
+	imageIndex := int(period) % numImages
+	currImage := db.ImagePaths[imageIndex]
+	return currImage
 }
 
 func setImageHeadersForever(w http.ResponseWriter) {
