@@ -51,13 +51,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to parse template file for index.html: %s", err)
 	}
-	defaultImagePath, envExists := os.LookupEnv("IMAGE_LOC")
+	imagePath, envExists := os.LookupEnv("IMAGE_PATH")
 	if !envExists {
 		log.Fatalf("Must set IMAGE_LOC environment variable. Exiting.")
-	}
-	imagePath := os.Getenv("IMAGE_PATH")
-	if imagePath == "" {
-		imagePath = defaultImagePath
 	}
 	db, err := buildImageList(imagePath)
 	if err != nil {
