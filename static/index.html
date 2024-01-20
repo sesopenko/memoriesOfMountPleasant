@@ -88,7 +88,7 @@
         if (!window.console) console = {log: function() {}};
 
         function changeImage() {
-            console.log('swapping images')
+            //console.log('swapping images')
             var memoryRear = document.getElementById("memory_rear")
             memoryRear.src = currentImageUrl
 
@@ -104,7 +104,7 @@
 
         function requestNextImage() {
             var memoryFront = document.getElementById("memory_front")
-            console.log('getting next image')
+            //console.log('getting next image')
             var xhr = new XMLHttpRequest();
             xhr.open("GET", "/api/current_memory", true);
             xhr.onreadystatechange = function() {
@@ -112,11 +112,11 @@
                     var responseData = JSON.parse(xhr.responseText)
                     if (typeof  responseData === 'object' && responseData.hasOwnProperty('url')) {
                         url = responseData['url']
-                        console.log('got next image:', url)
+                        //console.log('got next image:', url)
                         memoryFront.src = url
                         currentImageUrl = url
                     } else {
-                        console.log("Got an invalid object back: ", responseData)
+                        //console.log("Got an invalid object back: ", responseData)
                     }
 
                 }
@@ -135,7 +135,7 @@
 
             var img = document.getElementById('memory_front')
             img.addEventListener('load', function() {
-                console.log("New image has finished loading")
+                //console.log("New image has finished loading")
                 window.setTimeout(triggerFadeInImage, 50)
 
             })
