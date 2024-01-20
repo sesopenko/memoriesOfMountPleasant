@@ -52,7 +52,7 @@
             width: 512px;
             position: relative;
             overflow: hidden;
-            margin-bottom: 5px
+            margin-bottom: 5px;
         }
 
         .explanation {
@@ -128,7 +128,7 @@
         function triggerFadeInImage() {
             var img = document.getElementById('memory_front')
             img.classList.add("overlay-image-display")
-            window.setTimeout(changeImage, 6000)
+            window.setTimeout(changeImage, 7000)
         }
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -139,7 +139,7 @@
                 window.setTimeout(triggerFadeInImage, 50)
 
             })
-            changeImage()
+            // changeImage()
         });
 
 

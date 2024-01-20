@@ -51,7 +51,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to parse template file for index.html: %s", err)
 	}
-	const defaultImagePath = "/mnt/sean-documents/art concept ai/memories_of_mount_pleasant"
+	defaultImagePath, envExists := os.LookupEnv("IMAGE_LOC")
+	if !envExists {
+		log.Fatalf("Must set IMAGE_LOC environment variable. Exiting.")
+	}
 	imagePath := os.Getenv("IMAGE_PATH")
 	if imagePath == "" {
 		imagePath = defaultImagePath
@@ -78,7 +81,7 @@ func main() {
 	}
 
 	emptyMemoryHandler := func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		file, err := staticContent.Open("static/empty_memory.png")
+		file, err := staticContent.Open("static/empty_memory.jpg")
 		if err != nil {
 			http.Error(w, "not found", http.StatusNotFound)
 			return
@@ -155,7 +158,7 @@ func getCurrentImage(numImages int, db ImageDb) ImageDetails {
 }
 
 func setImageHeadersForever(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Cache-Control", "public, max-age=31536000") // max-age is set to one year
 	w.Header().Set("Expires", time.Now().AddDate(1, 0, 0).UTC().Format(http.TimeFormat))
 }
@@ -186,8 +189,8 @@ func buildImageList(dirPath string) (ImageDb, error) {
 			return nil
 		}
 		fileName := filepath.Base(fPath)
-		if !isPNGFile(fileName) {
-			log.Printf("file is not an png: %s", fileName)
+		if !isJPGFile(fileName) {
+			log.Printf("file is not a jpg: %s", fileName)
 			return nil
 		}
 		id := (uuid.New()).String()
@@ -208,10 +211,10 @@ func buildImageList(dirPath string) (ImageDb, error) {
 
 }
 
-func isPNGFile(filename string) bool {
+func isJPGFile(filename string) bool {
 	// Convert the extension to lowercase for case-insensitive comparison
 	ext := strings.ToLower(filepath.Ext(filename))
 
-	// Check if the file has a .png extension
-	return ext == ".png"
+	// Check if the file has a .jpg extension
+	return ext == ".jpg"
 }
